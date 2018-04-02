@@ -17,7 +17,7 @@ type DNA struct {
 	attrs map[string]string
 }
 
-// NewDNA create a new DNA object
+// NewDNA create a new DNA object and return its pointer
 func NewDNA(seq string) (*DNA, error) {
 	seq = strings.ToUpper(seq)
 	b := []byte(seq)

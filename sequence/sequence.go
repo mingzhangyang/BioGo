@@ -13,6 +13,11 @@ func (s *Sequence) Length() int {
 	return len(*s)
 }
 
+// Seq method return the sequence as string
+func (s *Sequence) Seq() string {
+	return string(*s)
+}
+
 // Reverse method return the reversed sequence
 func (s *Sequence) Reverse() string {
 	b := []byte((*s))
