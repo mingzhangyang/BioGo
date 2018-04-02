@@ -39,3 +39,19 @@ func (s *Sequence) Composition() []Unit {
 	sort.SliceStable(res, func(i, j int) bool { return res[j].count < res[i].count })
 	return res
 }
+
+// Uniq return the uniq characters in the sequence
+func (s *Sequence) Uniq() []string {
+	m := make(map[byte]int)
+	res := make([]string, 0)
+	b := []byte(*s)
+	c := -1
+	for i := 0; i < len(b); i++ {
+		if _, ok := m[b[i]]; !ok {
+			c += 1
+			m[b[i]] = c
+			res = append(res, string(b[i]))
+		}
+	}
+	return res
+}
