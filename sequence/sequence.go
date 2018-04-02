@@ -1,6 +1,9 @@
 package sequence
 
-import "sort"
+import (
+	"errors"
+	"sort"
+)
 
 // Sequence define the base type of DNA, Protein, etc.
 type Sequence string
@@ -54,4 +57,37 @@ func (s *Sequence) Uniq() []string {
 		}
 	}
 	return res
+}
+
+// Range can select a fragment of the sequence, inclusive of both the start and end index
+// if the end index is ignored, fragment will end till the last character
+func (s *Sequence) Range(index ...int) (string, error) {
+	var start = index[0]
+	var end int = -1
+	if len(index) > 1 {
+		end = index[1]
+	}
+	h := len(*s)
+	switch {
+	case start > h:
+		return "", errors.New("start index out of range: too large")
+	case start < -h:
+		return "", errors.New("start index out of range: too small")
+	case start < 0:
+		start += h
+	}
+	switch {
+	case end > h:
+		return "", errors.New("end index out of range: too large")
+	case end < -h:
+		return "", errors.New("end index out of range: too small")
+	case end < 0:
+		end += h
+	}
+	switch {
+	case end < start:
+		return "", errors.New("start index is larger than end index")
+	default:
+		return (string(*s))[start:(end + 1)], nil
+	}
 }
