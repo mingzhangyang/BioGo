@@ -59,11 +59,11 @@ func (s *Sequence) Uniq() []string {
 	return res
 }
 
-// Range can select a fragment of the sequence, inclusive of both the start and end index
-// if the end index is ignored, fragment will end till the last character
+// Range can select a fragment of the sequence, inclusive on the start and exclusive on the end index
+// if the end index is omitted, fragment will end till the last character
 func (s *Sequence) Range(index ...int) (string, error) {
 	var start = index[0]
-	var end int = -1
+	var end int = 0
 	if len(index) > 1 {
 		end = index[1]
 	}
@@ -81,13 +81,13 @@ func (s *Sequence) Range(index ...int) (string, error) {
 		return "", errors.New("end index out of range: too large")
 	case end < -h:
 		return "", errors.New("end index out of range: too small")
-	case end < 0:
+	case end <= 0:
 		end += h
 	}
 	switch {
 	case end < start:
 		return "", errors.New("start index is larger than end index")
 	default:
-		return (string(*s))[start:(end + 1)], nil
+		return (string(*s))[start:end], nil
 	}
 }
