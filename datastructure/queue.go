@@ -1,10 +1,6 @@
 package datastructure
 
-type Node struct {
-	Value string
-	Next  *Node
-}
-
+// Queue type definition
 type Queue struct {
 	head *Node
 	tail *Node
@@ -17,6 +13,7 @@ func (q *Queue) isEmpty() bool {
 	return false
 }
 
+// Add an element to the tail of the queue
 func (q *Queue) Add(str string) {
 	n := &Node{str, nil}
 	if q.tail == nil {
@@ -30,6 +27,7 @@ func (q *Queue) Add(str string) {
 	}
 }
 
+// Remove an element from the head of the queue
 func (q *Queue) Remove() (string, bool) {
 	if q.isEmpty() {
 		return "", false
@@ -50,6 +48,7 @@ func (q *Queue) Remove() (string, bool) {
 	return str, true
 }
 
+// String function define custom output
 func (q Queue) String() string {
 	if q.isEmpty() {
 		return ""

@@ -4,7 +4,7 @@ Golang package for Biology
 - sequence
   - DNA
   - Protein
-- files
+- filehandler
   - fasta
   - fastq
   - bam
@@ -12,3 +12,5 @@ Golang package for Biology
 - tools
   - search
 - knowledge
+- datastructure
+- algorithm
