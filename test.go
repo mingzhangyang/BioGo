@@ -3,18 +3,16 @@ package main
 import (
 	"fmt"
 
-	// "./machinary"
-	// "./sequence"
-	"./utilities"
+	"./algorithm"
 )
 
 func main() {
-	c := utilities.NewCircularIndex(0, 10)
+	c := algorithm.NewCircularIndex(0, 10)
 	c.SetStep(6)
 	fmt.Println(c.Next())
 	fmt.Println(c.Next())
 	fmt.Println(c.Next())
-	// fmt.Println(utilities.HammingDistance("abcdefg", "adcegfb"))
+	// fmt.Println(algorithm.HammingDistance("abcdefg", "adcegfb"))
 	// s, _ := sequence.NewDNA("agtcgatcgtaggatccta")
 	// fmt.Println(s)
 	// fmt.Println(s.Range(-5))

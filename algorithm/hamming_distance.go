@@ -1,4 +1,4 @@
-package utilities
+package algorithm
 
 // HammingDistance count the number of positions
 // at which the correspondingg symbols are different

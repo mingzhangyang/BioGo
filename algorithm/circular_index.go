@@ -1,15 +1,15 @@
-package utilities
+package algorithm
 
 // CircularIndex provide index in a curcular way
 // Using CircularIndex, any slices can be turned into a circular list
 type CircularIndex struct {
-	entry int
+	entry      int
 	upperBound int
-	direction int
-	step int
-	incomming chan int
-	started bool
-	done bool
+	direction  int
+	step       int
+	incomming  chan int
+	started    bool
+	done       bool
 }
 
 func (c *CircularIndex) start() {
@@ -26,7 +26,7 @@ func (c *CircularIndex) start() {
 			default:
 				panic("direction value can only be 1 or -1")
 			}
-			if cur > c.upperBound - 1 {
+			if cur > c.upperBound-1 {
 				cur -= c.upperBound
 			} else if cur < 0 {
 				cur += c.upperBound
@@ -54,7 +54,7 @@ func (c *CircularIndex) Reverse() {
 	c.direction = -c.direction
 }
 
-// SetStep change the step, if the provided number 
+// SetStep change the step, if the provided number
 func (c *CircularIndex) SetStep(n int) {
 	c.step = n % c.upperBound
 }
@@ -62,12 +62,12 @@ func (c *CircularIndex) SetStep(n int) {
 // NewCircularIndex method create a new CircularIndex object
 func NewCircularIndex(entry, upperBound int) *CircularIndex {
 	return &CircularIndex{
-		entry: entry,
+		entry:      entry,
 		upperBound: upperBound,
-		direction: 1,
-		step: 1,
-		incomming: make(chan int),
-		started: false,
-		done: false,
+		direction:  1,
+		step:       1,
+		incomming:  make(chan int),
+		started:    false,
+		done:       false,
 	}
 }
