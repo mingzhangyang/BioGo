@@ -2,17 +2,44 @@ package main
 
 import (
 	"fmt"
-
-	"./algorithm"
+	// "./machinary"
+	// "./sequence"
+	// "./utilities"
+	ds "./datastructure"
 )
 
 func main() {
-	c := algorithm.NewCircularIndex(0, 10)
-	c.SetStep(6)
-	fmt.Println(c.Next())
-	fmt.Println(c.Next())
-	fmt.Println(c.Next())
-	// fmt.Println(algorithm.HammingDistance("abcdefg", "adcegfb"))
+	s := ds.Stack{}
+	s.Push("A")
+	s.Push("B")
+	s.Push("C")
+	s.Push("D")
+	fmt.Println(s)
+	fmt.Println(s.Length())
+	s.Pop()
+	s.Pop()
+	s.Pop()
+	fmt.Println(s)
+	fmt.Println(s.Length())
+
+	fmt.Println("***********************************")
+
+	q := ds.Queue{}
+	q.EnQueue("X")
+	q.EnQueue("Y")
+	q.EnQueue("Z")
+	fmt.Println(q)
+	fmt.Println(q.Length())
+	q.DeQueue()
+	q.DeQueue()
+	fmt.Println(q)
+	fmt.Println(q.Length())
+	// c := utilities.NewCircularIndex(0, 10)
+	// c.SetStep(6)
+	// fmt.Println(c.Next())
+	// fmt.Println(c.Next())
+	// fmt.Println(c.Next())
+	// fmt.Println(utilities.HammingDistance("abcdefg", "adcegfb"))
 	// s, _ := sequence.NewDNA("agtcgatcgtaggatccta")
 	// fmt.Println(s)
 	// fmt.Println(s.Range(-5))
