@@ -1,7 +1,7 @@
-package machinary
+package signaling
 
 type Messenger struct {
 	message string
-	source
+	source *Emitter
 	target *Receptor
 }

@@ -1,10 +1,10 @@
-package machinary
+package enzyme
 
 import (
 	"errors"
 	"regexp"
 
-	"../sequence"
+	"../../sequence"
 )
 
 type RE_Site struct {
