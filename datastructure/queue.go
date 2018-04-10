@@ -92,23 +92,20 @@ func (q *Queue) DeQueue() (string, bool) {
 
 // String function define custom output
 func (q Queue) String() string {
-	if q.isEmpty() {
+	if q.length == 0 {
 		return ""
 	}
-// 	if q.head == nil {
-// 		return q.tail.Value
-// 	}
-// 	n := q.head
-// 	str := n.Value
-// 	for n.Next != nil {
-// 		n = n.Next
-// 		str += (" - " + n.Value)
-// 	}
 	n := q.head
 	str := n.Value
-	for q.length > 0 {
+	for n.Next != nil {
 		n = n.Next
 		str += (" - " + n.Value)
 	}
+// 	n := q.head
+// 	str := n.Value
+// 	for q.length > 0 { // here is a potential bug, if q.length == 1, n.Next is nil
+// 		n = n.Next
+// 		str += (" - " + n.Value)
+// 	}
 	return str
 }
