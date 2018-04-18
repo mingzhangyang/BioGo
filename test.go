@@ -6,14 +6,23 @@ import (
 	// "./sequence"
 	// "./utilities"
 	// ds "./datastructure"
-	m "./machinary"
+	// m "./machinary"
+	"BioGo/util"
 )
 
 func main() {
-	fmt.Println(m.I)
-	fmt.Println(m.II)
-	fmt.Println(m.IV)
-	fmt.Println(m.IX)
+	s := `AACTAGCACTAGCTGTTGCTATCGTACGTAGTTCATTGGTCATCGACCGGGTCATGCATCTAGCATCGTAGCATGCTAGCGATCTAGCTAGTCGTAGCTAGTCAGCGTAGCGTACGTAGCTAGCTAGCTAGTCGATCGATGCTAGCTAGTCGTAGCTAGGTTCTATGCT`
+
+	d1 := util.CountSubsequentOneChar(s, nil)
+	d2 := util.CountPrecedingOneChar(s, nil)
+
+	fmt.Println(d1)
+	fmt.Println(d2)
+
+	// fmt.Println(m.I)
+	// fmt.Println(m.II)
+	// fmt.Println(m.IV)
+	// fmt.Println(m.IX)
 	// s := ds.Stack{}
 	// s.Push("A")
 	// s.Push("B")
