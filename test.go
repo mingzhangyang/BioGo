@@ -7,17 +7,26 @@ import (
 	// "./utilities"
 	// ds "./datastructure"
 	// m "./machinary"
-	"BioGo/util"
+	// "BioGo/util"
+	"BioGo/filehandler"
 )
 
 func main() {
-	s := `AACTAGCACTAGCTGTTGCTATCGTACGTAGTTCATTGGTCATCGACCGGGTCATGCATCTAGCATCGTAGCATGCTAGCGATCTAGCTAGTCGTAGCTAGTCAGCGTAGCGTACGTAGCTAGCTAGCTAGTCGATCGATGCTAGCTAGTCGTAGCTAGGTTCTATGCT`
+	fq := filehandler.Fastq{"./sampledata/SRR835775_1.first1000.fastq", "test"}
+	fmt.Println(fq.Hist())
+	m := fq.QCounts()
+	s := make([]int, 60)
+	for k, v := range m {
+		s[k] = v
+	}
+	fmt.Println(s)
+	// s := `AACTAGCACTAGCTGTTGCTATCGTACGTAGTTCATTGGTCATCGACCGGGTCATGCATCTAGCATCGTAGCATGCTAGCGATCTAGCTAGTCGTAGCTAGTCAGCGTAGCGTACGTAGCTAGCTAGCTAGTCGATCGATGCTAGCTAGTCGTAGCTAGGTTCTATGCT`
 
-	d1 := util.CountSubsequentOneChar(s, nil)
-	d2 := util.CountPrecedingOneChar(s, nil)
+	// d1 := util.CountSubsequentOneChar(s, nil)
+	// d2 := util.CountPrecedingOneChar(s, nil)
 
-	fmt.Println(d1)
-	fmt.Println(d2)
+	// fmt.Println(d1)
+	// fmt.Println(d2)
 
 	// fmt.Println(m.I)
 	// fmt.Println(m.II)
