@@ -12,8 +12,9 @@ type Probability struct {
 type HMM struct {
 	States                []string
 	Observations          []string
-	TransistionProbablity map[string][]Probability
-	EmissionProbability   map[string][]Probability
+	TransistionProbablities map[string][]Probability
+	EmissionProbabilities   map[string][]Probability
+	InitialProbabilities []Probability
 }
 
 // Monitor method to calculate the probability of a state given observation
