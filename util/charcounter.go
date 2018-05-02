@@ -1,5 +1,14 @@
 package util
 
+// CharCounter read a UTF8 string and count the number of every unique character
+func CharCounter(s string) map[rune]int {
+	m := make(map[rune]int)
+	for _, v := range s {
+		m[v]++
+	}
+	return m
+}
+
 // CountSubsequentOneChar method count the numbers of every unique char after any char in the string
 func CountSubsequentOneChar(str string, dict map[string]map[string]int) map[string]map[string]int {
 	if dict == nil {
