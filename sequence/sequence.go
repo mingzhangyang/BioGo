@@ -56,7 +56,7 @@ func (s *Sequence) Uniq() []string {
 	c := -1
 	for i := 0; i < len(b); i++ {
 		if _, ok := m[b[i]]; !ok {
-			c += 1
+			c++
 			m[b[i]] = c
 			res = append(res, string(b[i]))
 		}
@@ -68,7 +68,7 @@ func (s *Sequence) Uniq() []string {
 // if the end index is omitted, fragment will end till the last character
 func (s *Sequence) Range(index ...int) (string, error) {
 	var start = index[0]
-	var end int = 0
+	var end int
 	if len(index) > 1 {
 		end = index[1]
 	}
@@ -95,4 +95,18 @@ func (s *Sequence) Range(index ...int) (string, error) {
 	default:
 		return (string(*s))[start:end], nil
 	}
+}
+
+// KmerIndex index k-mer
+func (s *Sequence) KmerIndex(k int) map[string][]int {
+	res := make(map[string][]int)
+	for i := 0; i < len(*s)-k+1; i++ {
+		key := string((*s)[i:(i + k)])
+		if _, ok := res[key]; !ok {
+			res[key] = []int{i}
+			continue
+		}
+		res[key] = append(res[key], i)
+	}
+	return res
 }
