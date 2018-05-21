@@ -5,6 +5,7 @@ package refmag
 * The idea is to represent a reference database as a matrix.
 * A reference is represented as a row; the row index is the reference id.
 * Each column is a key word; 1 represents existence of the key word in a refernce, 0 absence.
+* This is a mimic of relational database.
 *************************************************************************************************/
 
 // represent the database with matrix
