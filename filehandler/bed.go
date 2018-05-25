@@ -1,0 +1,3 @@
+package filehandler
+
+// BED format
