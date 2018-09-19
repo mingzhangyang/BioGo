@@ -1,6 +1,8 @@
 package main
 
 import (
+	"log"
+	"BioGo/filehandler"
 	"fmt"
 	// "./machinary"
 	// "./sequence"
@@ -8,18 +10,18 @@ import (
 	// ds "./datastructure"
 	// m "./machinary"
 	// "BioGo/util"
-	"BioGo/filehandler"
+
 )
 
 func main() {
-	fq := filehandler.Fastq{"./sampledata/SRR835775_1.first1000.fastq", "test"}
-	fmt.Println(fq.Hist())
-	m := fq.QCounts()
-	s := make([]int, 60)
-	for k, v := range m {
-		s[k] = v
-	}
-	fmt.Println(s)
+	// fq := filehandler.Fastq{"./sampledata/SRR835775_1.first1000.fastq", "test"}
+	// fmt.Println(fq.Hist())
+	// m := fq.QCounts()
+	// s := make([]int, 60)
+	// for k, v := range m {
+	// 	s[k] = v
+	// }
+	// fmt.Println(s)
 	// s := `AACTAGCACTAGCTGTTGCTATCGTACGTAGTTCATTGGTCATCGACCGGGTCATGCATCTAGCATCGTAGCATGCTAGCGATCTAGCTAGTCGTAGCTAGTCAGCGTAGCGTACGTAGCTAGCTAGCTAGTCGATCGATGCTAGCTAGTCGTAGCTAGGTTCTATGCT`
 
 	// d1 := util.CountSubsequentOneChar(s, nil)
@@ -74,4 +76,11 @@ func main() {
 	// fmt.Println(s.GCContent())
 	// fmt.Println(s.Complement())
 	// fmt.Println(s.ReverseComplement())
+
+	fa, err := filehandler.ReadFasta("./sampledata/multiple.fasta")
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(*fa)
 }
