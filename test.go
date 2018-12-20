@@ -1,15 +1,15 @@
 package main
 
 import (
-	"log"
-	"BioGo/filehandler"
+	// "log"
+	// "BioGo/filehandler"
 	"fmt"
 	// "./machinary"
 	// "./sequence"
 	// "./utilities"
 	// ds "./datastructure"
 	// m "./machinary"
-	// "BioGo/util"
+	"BioGo/util"
 
 )
 
@@ -77,10 +77,23 @@ func main() {
 	// fmt.Println(s.Complement())
 	// fmt.Println(s.ReverseComplement())
 
-	fa, err := filehandler.ReadFasta("./sampledata/multiple.fasta")
+	// fa, err := filehandler.ReadFasta("./sampledata/multiple.fasta")
 
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(*fa)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// fmt.Println(*fa)
+
+	s := `MNGYISNANYSVKKCIFLLFINHRLVESAALRKAIETVYAAYLPKNTHPFLYLSLEISPQNVDVNVHPTK
+	HEVHFLHEESILQRVQQHIESKLLGSNSSRMYFTQTLLPGLAGPSGEAARPTTGVASSSTSGSGDKVYAY
+	QMVRTDSREQKLDAFLQPVSSLGPSQPQDPAPVRGARTEGSPERATREDEEMLALPAPAEAAAESENLER
+	ESLMETSDAAQKAAPTSSPGSSRKRHREDSDVEMVENASGKEMTAACYPRRRIINLTSVLSLQEEISERC
+	HETLREMLRNHSFVGCVNPQWALAQHQTKLYLLNTTKLSEELFYQILIYDFANFGVLRLSEPAPLFDLAM
+	LALDSPESGWTEDDGPKEGLAEYIVEFLKKKAEMLADYFSVEIDEEGNLIGLPLLIDSYVPPLEGLPIFI
+	LRLATEVNWDEEKECFESLSKECAMFYSIRKQYILEESTLSGQQSDMPGSTSKPWKWTVEHIIYKAFRSH
+	LLPPKHFTEDGNVLQLANLPDLYKVFERC`
+
+	wc := util.NewWordCounter(s, 3, "ARNDCEQGHILKMFPSTWYV")
+	fmt.Println(wc.Ratio())
+	// fmt.Println(wc)
 }
