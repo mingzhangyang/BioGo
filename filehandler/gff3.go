@@ -27,9 +27,6 @@ type GFF3Object struct {
 func (g *GFF3Object) Load(line string) error {
 	fields := strings.Split(line, "\t")
 	if (len(fields) != 9) {
-		fmt.Println("not enough fields")
-		fmt.Println(line)
-		fmt.Println(fields)
 		return errors.New("not enough fields")
 	}
 	g.SeqID = fields[0]
@@ -114,7 +111,7 @@ func (gr GFF3Reader) Read(file string) (*GFF3Content, error) {
 				var g GFF3Object;
 				err := g.Load(line)
 				if err != nil {
-					fmt.Println("bad line: %s", line)
+					fmt.Printf("bad line: %s\n", line)
 				} else {
 					gc.Content = append(gc.Content, &g)
 				}
