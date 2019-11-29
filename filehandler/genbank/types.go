@@ -19,7 +19,7 @@ type GBRecord struct {
 	Comment string
 	Annotation map[string]string
 	Features Features
-	contig string
+	Contig string
 }
 
 // Source of the genome
@@ -54,27 +54,30 @@ func newReference(a []string) Reference {
 	for i, n := 1, len(a); i < n; i++ {
 		line = a[i]
 		head, body := strings.Trim(line[:12], " "), line[12:]
+		println(head, "---", body)
 		if head == "" {
 			cur.data = append(cur.data, body)
 			continue
 		}
-		switch cur.name {
-		case "AUTHORS":
-			authors := make([]string, 0)
-			for _, d := range cur.data {
-				authors = append(authors, strings.Split(d, ", ")...)
+		if cur.name != "" {
+			switch cur.name {
+			case "AUTHORS":
+				authors := make([]string, 0)
+				for _, d := range cur.data {
+					authors = append(authors, strings.Split(d, ", ")...)
+				}
+				m := len(authors)
+				authors = append(authors[:m-1], strings.Split(authors[m-1], " and ")...)
+				ref.authors = authors
+			case "TITLE":
+				ref.title = strings.Join(cur.data, " ")
+			case "JOURNAL":
+				ref.journal = strings.Join(cur.data, " ")
+			case "PUBMED":
+				ref.pubmed = cur.data[0]
+			default:
+				println("bypass this line: ", line)
 			}
-			m := len(authors)
-			authors = append(authors[:m-1], strings.Split(authors[m-1], " and ")...)
-			ref.authors = authors
-		case "TITLE":
-			ref.title = strings.Join(cur.data, " ")
-		case "JOURNAL":
-			ref.journal = strings.Join(cur.data, " ")
-		case "PUBMED":
-			ref.pubmed = cur.data[0]
-		default:
-			println("bypass this line: ", line)
 		}
 
 		cur.name = head
@@ -196,6 +199,13 @@ type Gene struct {
 	Product string
 	ProteinID string
 	Translation string
+	DbXref string
+	RibosomalSlippage bool
+	GeneSynonym string
+	AntiCodon string
+	Function string
+	NcRNAClass string
+	TranslateExcept string
 }
 
 func newGene(cur *holder) Gene {
@@ -241,8 +251,12 @@ func newGene(cur *holder) Gene {
 		}
 		if line != "" {
 			vs := strings.Split(line, "=")
-			p := vs[0]
-			q := strings.Trim(vs[1], "\"")
+			var p, q string
+			p = vs[0]
+			if len(vs) > 1 {
+				q = strings.Trim(vs[1], "\"")
+			}
+			
 			switch p {
 			case "/locus_tag":
 				g.LocusTag = q
@@ -279,16 +293,34 @@ func newGene(cur *holder) Gene {
 					g.EcNumber = []string{}
 				}
 				g.EcNumber = append(g.EcNumber, q)
+			case "/db_xref":
+				g.DbXref = q
+			case "/gene_synonym":
+				g.GeneSynonym = q
+			case "/anticodon":
+				g.AntiCodon = q
+			case "/ribosomal_slippage":
+				g.RibosomalSlippage = true
+			case "/function":
+				g.Function = q
+			case "/ncRNA_class":
+				g.NcRNAClass = q
+			case "/transl_except":
+				g.TranslateExcept = q
 			default:
-				println("bypass line: ", line)
+				println("bypass line: ", line, p, q)
 			}
 		}
 		line = cl
 	}
 	if line != "" {
 		vs := strings.Split(line, "=")
-		p := vs[0]
-		q := strings.Trim(vs[1], "\"")
+		var p, q string
+		p = vs[0]
+		if len(vs) > 1 {
+			q = strings.Trim(vs[1], "\"")
+		}
+		
 		switch p {
 		case "/locus_tag":
 			g.LocusTag = q
@@ -325,8 +357,10 @@ func newGene(cur *holder) Gene {
 				g.EcNumber = []string{}
 			}
 			g.EcNumber = append(g.EcNumber, q)
+		case "/db_xref":
+			g.DbXref = q
 		default:
-			println("bypass line: ", line)
+			println("bypass line: ", line, p, q)
 		}
 	}
 	return g
