@@ -53,6 +53,7 @@ func (gbr *GBRecord) Parse(fp string) error {
 				cur.data = append(cur.data, string(line))
 				continue
 			}
+			// it is possible to have sub-header, e.g REFERENCE part, we need to add the full line to cur.data
 			if head[0] == ' ' {
 				cur.data = append(cur.data, string(line))
 				continue
@@ -131,8 +132,10 @@ func (gbr *GBRecord) Parse(fp string) error {
 		head = strings.TrimRight(head, " ")
 		body = strings.TrimRight(body, " ")
 
+		// content line, no sub-header, so it is safe to add only body to curB.data
 		if head == "" {
-			curB.data = append(curB.data, string(line))
+			// curB.data = append(curB.data, string(line))
+			curB.data = append(curB.data, body)
 			continue;
 		}
 		

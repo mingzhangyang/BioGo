@@ -252,7 +252,8 @@ func newGene(cur *holder) *Gene {
 	}
 	line = ""
 	for i, n := 1, len(cur.data); i < n; i++ {
-		cl := strings.TrimLeft(cur.data[i], " ")
+		// cl := strings.TrimLeft(cur.data[i], " ")
+		cl := cur.data[i]
 		if !strings.HasPrefix(cl, "/") {
 			line += " " + cl
 			continue
