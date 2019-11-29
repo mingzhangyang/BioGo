@@ -1,6 +1,7 @@
 package genbank
 
 import (
+	"encoding/json"
 	"fmt"
 	"strconv"
 	"strings"
@@ -193,28 +194,28 @@ func newFeatureDescription(lines []string) FeaturesDescription {
 
 // Gene is a generic for gene, cds, tRNA, rRNA
 type Gene struct {
-	Type              string
-	Range             [][2]int
-	Strand            string
-	Gene              string
-	LocusTag          string
-	OldLocusTag       string
-	Pseudo            bool
-	EcNumber          []string
-	Inference         string
-	Note              string
-	CodonStart        int
-	TranslateTable    int
-	Product           string
-	ProteinID         string
-	Translation       string
-	DbXref            string
-	RibosomalSlippage bool
-	GeneSynonym       string
-	AntiCodon         string
-	Function          string
-	NcRNAClass        string
-	TranslateExcept   string
+	Type              string   `json:"id,omitempty"`
+	Range             [][2]int `json:"range,omitempty"`
+	Strand            string   `json:"strand,omitempty"`
+	Gene              string   `json:"gene,omitempty"`
+	LocusTag          string   `json:"locus_tag,omitempty"`
+	OldLocusTag       string   `json:"old_locus_tag,omitempty"`
+	Pseudo            bool     `json:"pseudo,omitempty"`
+	EcNumber          []string `json:"EC_number,omitempty"`
+	Inference         string   `json:"inference,omitempty"`
+	Note              string   `json:"note,omitempty"`
+	CodonStart        int      `json:"codon_start,omitempty"`
+	TranslateTable    int      `json:"transl_table,omitempty"`
+	Product           string   `json:"product,omitempty"`
+	ProteinID         string   `json:"protein_id,omitempty"`
+	Translation       string   `json:"translation,omitempty"`
+	DbXref            string   `json:"db_xref,omitempty"`
+	RibosomalSlippage bool     `json:"ribosomal_slippage,omitempty"`
+	GeneSynonym       string   `json:"gene_synonym,omitempty"`
+	AntiCodon         string   `json:"anti_codon,omitempty"`
+	Function          string   `json:"function,omitempty"`
+	NcRNAClass        string   `json:"ncRNA_class,omitempty"`
+	TranslateExcept   string   `json:"translate_except,omitempty"`
 }
 
 func newGene(cur *holder) *Gene {
@@ -328,6 +329,14 @@ func (g *Gene) SetAttribute(line string) {
 	default:
 		println("bypass line: ", line, p, q)
 	}
+}
+
+func (g *Gene) String() string {
+	bs, err := json.Marshal(g)
+	if err != nil {
+		return ""
+	}
+	return string(bs)
 }
 
 func extractAnnotation(arr []string) map[string]string {
