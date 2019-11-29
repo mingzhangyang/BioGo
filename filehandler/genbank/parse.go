@@ -4,6 +4,8 @@ import (
 	"os"
 	"bufio"
 	"strings"
+	"path/filepath"
+	"errors"
 )
 
 type holder struct {
@@ -13,10 +15,19 @@ type holder struct {
 
 // Parse a .gb file into a GBRecord struct
 func (gbr *GBRecord) Parse(fp string) error {
+	ext := filepath.Ext(fp)
+	if ext != ".gb" {
+		return errors.New("genbank file is supposed to contain name extension .gb")
+	}
+	
 	f, err := os.Open(fp)
 	if err != nil {
 		return err
 	}
+
+	base := filepath.Base(fp)
+	gbr.Name = strings.Split(base, ext)[0]
+
 	scanner := bufio.NewScanner(f)
 	cur := &holder{
 		data: make([]string, 0, 1024),
@@ -24,37 +35,50 @@ func (gbr *GBRecord) Parse(fp string) error {
 	curB := &holder {
 		data: make([]string, 0, 1024),
 	}
+	lineCounter := 0
+
 	for scanner.Scan() {
+		lineCounter++
 		line := scanner.Bytes()
+		if len(line) < 12 {
+			println("#", lineCounter, "; illegal line:  ", string(line))
+			continue
+		}
 		head, body := string(line[:12]), string(line[12:])
 		head = strings.TrimRight(head, " ")
 		body = strings.TrimRight(body, " ")
 
-		if cur.name != "FEATUREs" {
-			if head == "" || head[0] == ' ' {
-				cur.data = append(cur.data, body)
+		if cur.name != "FEATURES" {
+			if head == "" {
+				cur.data = append(cur.data, string(line))
+				continue
+			}
+			if head[0] == ' ' {
+				cur.data = append(cur.data, string(line))
 				continue
 			}
 			switch cur.name {
 			case "":
 				// do nothing
 			case "LOCUS":
-				gbr.Locus = cur.data[0]
+				gbr.Locus = strings.Join(cur.data, " ")
 			case "DEFINITION":
-				gbr.Definition = cur.data[0]
+				gbr.Definition = strings.Join(cur.data, " ")
 			case "ACCESSION":
 				gbr.Accession = make([]string, 0)
 				for i := 0; i < len(cur.data); i++ {
-					acs := strings.Split(cur.data[i], " ")
+					acs := strings.Split(strings.Trim(cur.data[i], " "), " ")
 					gbr.Accession = append(gbr.Accession, acs...)
 				}
 			case "VERSION":
-				gbr.Version = cur.data[0]
+				gbr.Version = strings.Join(cur.data, " ")
 			case "DBLINK":
-				gbr.Dblink = make([]string, 0, len(cur.data))
-				copy(gbr.Dblink, cur.data)
+				gbr.DbLink = make([]string, len(cur.data))
+				for i := 0; i < len(cur.data); i++ {
+					gbr.DbLink[i] = strings.Trim(cur.data[i], " ")
+				}
 			case "KEYWORDS":
-				gbr.Keywords = cur.data[0]
+				gbr.Keywords = strings.Join(cur.data, " ")
 			case "SOURCE":
 				gbr.Source = newSource(cur.data)
 			case "REFERENCE":
@@ -66,12 +90,12 @@ func (gbr *GBRecord) Parse(fp string) error {
 			case "COMMENT":
 				p, q, n := 0, 0, len(cur.data)
 				for i := 0; i < n; i++ {
-					if cur.data[i] == "##Genome-Annotation-Data-START##" {
+					cur.data[i] = strings.Trim(cur.data[i], " ")
+					if strings.Contains(cur.data[i], "##Genome-Annotation-Data-START##") {
 						p = i
 					}
-					if cur.data[i] == "##Genome-Annotation-Data-END##" {
+					if strings.Contains(cur.data[i], "##Genome-Annotation-Data-END##") {
 						q = i
-						break
 					}
 				}
 
@@ -85,25 +109,39 @@ func (gbr *GBRecord) Parse(fp string) error {
 					if q + 1 < n {
 						gbr.Comment += strings.Join(cur.data[q+1:], " ")
 					}
-					gbr.Annotation = extracAnnotation(cur.data[p+1:q])
+					gbr.Annotation = extractAnnotation(cur.data[p+1:q])
 				}
 
+			case "CONTIG":
+				gbr.Contig = strings.Join(cur.data, " ")
 			default:
 				println("uncaught: ", head, body)
 			}
 	
-			cur.name = head
+			//println("debugging.... |", head)
+			cur.name = strings.TrimLeft(head, " ")
 			cur.data = cur.data[:1]
 			cur.data[0] = body
 
 			continue
 		}
 		
+		
 		head, body = string(line[:21]), string(line[21:])
 		head = strings.TrimRight(head, " ")
 		body = strings.TrimRight(body, " ")
 
+		if head == "" {
+			curB.data = append(curB.data, string(line))
+			continue;
+		}
+		
 		if head[0] != ' ' {
+			// FEATURES ended, switch to cut at 12
+			head, body := string(line[:12]), string(line[12:])
+			head = strings.TrimRight(head, " ")
+			body = strings.TrimRight(body, " ")
+
 			cur.name = head
 			cur.data = cur.data[:1]
 			cur.data[0] = body
@@ -111,17 +149,10 @@ func (gbr *GBRecord) Parse(fp string) error {
 			continue
 		}
 
-		head = strings.TrimLeft(head, " ") 
-
-		if head == "" {
-			curB.data = append(curB.data, body)
-			continue;
-		}
-
 		switch curB.name {
 		case "":
 			gbr.Features = Features{
-				Genes: make([]Gene, 1024 * 8),
+				Genes: make([]*Gene, 0, 1024 * 16),
 			}
 		case "source":
 			gbr.Features.Description = newFeatureDescription(curB.data)
@@ -129,20 +160,27 @@ func (gbr *GBRecord) Parse(fp string) error {
 			gbr.Features.Genes = append(gbr.Features.Genes, newGene(curB))
 		}
 
-		curB.name = head
+		curB.name = strings.TrimLeft(head, " ")
 		curB.data = curB.data[:1]
 		curB.data[0] = body
 	}
 
-	switch curB.name {
-	case "source":
-		gbr.Features.Description = newFeatureDescription(curB.data)
-	default:
-		gbr.Features.Genes = append(gbr.Features.Genes, newGene(curB))
+	if curB.name != "" {
+		switch curB.name {
+		case "source":
+			gbr.Features.Description = newFeatureDescription(curB.data)
+		default:
+			gbr.Features.Genes = append(gbr.Features.Genes, newGene(curB))
+		}
 	}
 
-	switch cur.name {
-
+	if cur.name != "" {
+		switch cur.name {
+		case "CONTIG":
+			gbr.Contig = strings.Join(cur.data, " ")
+		default:
+			println("bypass lines: ", strings.Join(cur.data, " "))
+		}
 	}
 
 	return nil
