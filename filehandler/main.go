@@ -4,6 +4,7 @@ import (
 	gb "BioGo/filehandler/genbank"
 	"log"
 	"os"
+	"fmt"
 )
 
 func main() {
@@ -17,5 +18,17 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	println(gbr.Locus)
+	//fmt.Println(gbr.Features.Description)
+	//fmt.Println(gbr.DbLink)
+	//fmt.Println(gbr.Accession)
+	//fmt.Println(gbr.Version)
+	//fmt.Println(gbr.Contig)
+	//fmt.Println(gbr.Comment)
+	//for k, v := range gbr.Annotation {
+	//	fmt.Println(k, "---", v)
+	//}
+	fmt.Println(len(gbr.Features.Genes))
+	fmt.Println(gbr.Features.Genes[0])
+	fmt.Println(gbr.Features.Genes[1])
+	fmt.Println(gbr.Features.Genes[2])
 }

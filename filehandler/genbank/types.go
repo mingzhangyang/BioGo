@@ -1,52 +1,63 @@
 package genbank
 
 import (
-	"strings"
+	"fmt"
 	"strconv"
+	"strings"
 )
 
 // GBRecord represent the genebank data
 type GBRecord struct {
-	Name string
-	Locus string
-	Accession []string
+	Name       string
+	Locus      string
+	Accession  []string
 	Definition string
-	Version string
-	Dblink []string
-	Keywords string
-	Source Source
-	Reference []Reference
-	Comment string
+	Version    string
+	DbLink     []string
+	Keywords   string
+	Source     Source
+	Reference  []Reference
+	Comment    string
 	Annotation map[string]string
-	Features Features
-	Contig string
+	Features   Features
+	Contig     string
 }
 
 // Source of the genome
 type Source struct {
-	name string
+	name     string
 	organism []string
 }
 
 func newSource(a []string) Source {
 	return Source{
-		name: a[0],
+		name:     a[0],
 		organism: a[1:],
 	}
 }
 
 // Reference about the genome
 type Reference struct {
-	description string
-	authors []string
-	title string
-	journal string
-	pubmed string
+	Description string
+	Authors     []string
+	Title       string
+	Journal     string
+	PubMed      string
+}
+
+func (ref Reference) String() string {
+	res := strings.Builder{}
+	res.WriteString(fmt.Sprintln("Description: ", ref.Description))
+	res.WriteString(fmt.Sprintln("Authors: ", strings.Join(ref.Authors, " ")))
+	res.WriteString(fmt.Sprintln("Title: ", ref.Title))
+	res.WriteString(fmt.Sprintln("Journal: ", ref.Journal))
+	res.WriteString(fmt.Sprintln("PubMed ID: ", ref.PubMed))
+	return res.String()
 }
 
 func newReference(a []string) Reference {
 	ref := Reference{}
-	ref.description = a[0]
+	ref.Description = a[0]
 	var line string
 	cur := holder{
 		data: make([]string, 0, 1024),
@@ -54,7 +65,6 @@ func newReference(a []string) Reference {
 	for i, n := 1, len(a); i < n; i++ {
 		line = a[i]
 		head, body := strings.Trim(line[:12], " "), line[12:]
-		println(head, "---", body)
 		if head == "" {
 			cur.data = append(cur.data, body)
 			continue
@@ -68,13 +78,13 @@ func newReference(a []string) Reference {
 				}
 				m := len(authors)
 				authors = append(authors[:m-1], strings.Split(authors[m-1], " and ")...)
-				ref.authors = authors
+				ref.Authors = authors
 			case "TITLE":
-				ref.title = strings.Join(cur.data, " ")
+				ref.Title = strings.Join(cur.data, " ")
 			case "JOURNAL":
-				ref.journal = strings.Join(cur.data, " ")
+				ref.Journal = strings.Join(cur.data, " ")
 			case "PUBMED":
-				ref.pubmed = cur.data[0]
+				ref.PubMed = cur.data[0]
 			default:
 				println("bypass this line: ", line)
 			}
@@ -93,13 +103,13 @@ func newReference(a []string) Reference {
 		}
 		m := len(authors)
 		authors = append(authors[:m-1], strings.Split(authors[m-1], " and ")...)
-		ref.authors = authors
+		ref.Authors = authors
 	case "TITLE":
-		ref.title = strings.Join(cur.data, " ")
+		ref.Title = strings.Join(cur.data, " ")
 	case "JOURNAL":
-		ref.journal = strings.Join(cur.data, " ")
+		ref.Journal = strings.Join(cur.data, " ")
 	case "PUBMED":
-		ref.pubmed = cur.data[0]
+		ref.PubMed = cur.data[0]
 	default:
 		println("bypass this line: ", line)
 	}
@@ -109,16 +119,16 @@ func newReference(a []string) Reference {
 // Features of the genome
 type Features struct {
 	Description FeaturesDescription
-	Genes []Gene
+	Genes       []*Gene
 }
 
 // FeaturesDescription describe the features
 type FeaturesDescription struct {
-	Range [2]int
+	Range    [2]int
 	Organism string
-	Type string
-	Strain string
-	DbXref string
+	Type     string
+	Strain   string
+	DbXref   string
 }
 
 func newFeatureDescription(lines []string) FeaturesDescription {
@@ -139,7 +149,7 @@ func newFeatureDescription(lines []string) FeaturesDescription {
 	desc.Range[1] = b
 	line = ""
 	for i, n := 1, len(lines); i < n; i++ {
-		cl := lines[i]
+		cl := strings.TrimLeft(lines[i], " ")
 		if !strings.HasPrefix(cl, "/") {
 			line += " " + cl
 			continue
@@ -181,192 +191,146 @@ func newFeatureDescription(lines []string) FeaturesDescription {
 	return desc
 }
 
-
 // Gene is a generic for gene, cds, tRNA, rRNA
 type Gene struct {
-	Type string
-	Start, End int
-	Strand string
-	Gene string
-	LocusTag string
-	OldLocusTag string
-	Pseudo bool
-	EcNumber []string
-	Inference string
-	Note string
-	CodonStart int
-	TranslateTable int
-	Product string
-	ProteinID string
-	Translation string
-	DbXref string
+	Type              string
+	Range             [][2]int
+	Strand            string
+	Gene              string
+	LocusTag          string
+	OldLocusTag       string
+	Pseudo            bool
+	EcNumber          []string
+	Inference         string
+	Note              string
+	CodonStart        int
+	TranslateTable    int
+	Product           string
+	ProteinID         string
+	Translation       string
+	DbXref            string
 	RibosomalSlippage bool
-	GeneSynonym string
-	AntiCodon string
-	Function string
-	NcRNAClass string
-	TranslateExcept string
+	GeneSynonym       string
+	AntiCodon         string
+	Function          string
+	NcRNAClass        string
+	TranslateExcept   string
 }
 
-func newGene(cur *holder) Gene {
-	g := Gene{
+func newGene(cur *holder) *Gene {
+	g := &Gene{
 		Type: cur.name,
 	}
 	line := cur.data[0]
 	if strings.HasPrefix(line, "complement") {
 		g.Strand = "complement"
-		vs := strings.Split(line, "complement")[1]
-		t := strings.Split(vs[1:len(vs)-1], "..")
+		line = strings.Split(line, "complement")[1]
+		line = strings.Trim(line, "()")
+	}
+	if strings.HasPrefix(line, "join") {
+		line = strings.Split(line, "join")[1]
+		line = strings.Trim(line, "()")
+	}
+	ts := strings.Split(line, ",")
+	g.Range = make([][2]int, 0, 2)
+	for _, pa := range ts {
+		t := strings.Split(pa, "..")
 		a := strings.TrimLeft(t[0], "<>")
 		b := strings.TrimLeft(t[1], "><")
 		var err error
-		g.Start, err = strconv.Atoi(a)
+		var r [2]int
+		r[0], err = strconv.Atoi(a)
 		if err != nil {
 			println("failed to convert to int at ", line)
 		}
-		g.End, err = strconv.Atoi(b)
+		r[1], err = strconv.Atoi(b)
 		if err != nil {
 			println("failed to convert to int at ", line)
 		}
-	} else {
-		t := strings.Split(line, "..")
-		a := strings.TrimLeft(t[0], "<>")
-		b := strings.TrimLeft(t[1], "><")
-		var err error
-		g.Start, err = strconv.Atoi(a)
-		if err != nil {
-			println("failed to convert to int at ", line)
-		}
-		g.End, err = strconv.Atoi(b)
-		if err != nil {
-			println("failed to convert to int at ", line)
-		}
+		g.Range = append(g.Range, r)
 	}
 	line = ""
 	for i, n := 1, len(cur.data); i < n; i++ {
-		cl := cur.data[i]
+		cl := strings.TrimLeft(cur.data[i], " ")
 		if !strings.HasPrefix(cl, "/") {
 			line += " " + cl
 			continue
 		}
 		if line != "" {
-			vs := strings.Split(line, "=")
-			var p, q string
-			p = vs[0]
-			if len(vs) > 1 {
-				q = strings.Trim(vs[1], "\"")
-			}
-			
-			switch p {
-			case "/locus_tag":
-				g.LocusTag = q
-			case "/gene":
-				g.Gene = q
-			case "/old_locus_tag":
-				g.OldLocusTag = q
-			case "/note":
-				g.Note = q
-			case "/codon_start":
-				v, err := strconv.Atoi(q)
-				if err != nil {
-					println("failed to convert to int at line: ", line)
-				}
-				g.CodonStart = v
-			case "/transl_table":
-				v, err := strconv.Atoi(q)
-				if err != nil {
-					println("failed to convert to int at line: ", line)
-				}
-				g.TranslateTable = v
-			case "/pseudo":
-				g.Pseudo = true
-			case "/inference":
-				g.Inference = q
-			case "/product":
-				g.Product = q
-			case "/protein_id":
-				g.ProteinID = q
-			case "/translation":
-				g.Translation = q
-			case "/EC_number":
-				if g.EcNumber == nil {
-					g.EcNumber = []string{}
-				}
-				g.EcNumber = append(g.EcNumber, q)
-			case "/db_xref":
-				g.DbXref = q
-			case "/gene_synonym":
-				g.GeneSynonym = q
-			case "/anticodon":
-				g.AntiCodon = q
-			case "/ribosomal_slippage":
-				g.RibosomalSlippage = true
-			case "/function":
-				g.Function = q
-			case "/ncRNA_class":
-				g.NcRNAClass = q
-			case "/transl_except":
-				g.TranslateExcept = q
-			default:
-				println("bypass line: ", line, p, q)
-			}
+			g.SetAttribute(line)
 		}
 		line = cl
 	}
 	if line != "" {
-		vs := strings.Split(line, "=")
-		var p, q string
-		p = vs[0]
-		if len(vs) > 1 {
-			q = strings.Trim(vs[1], "\"")
-		}
-		
-		switch p {
-		case "/locus_tag":
-			g.LocusTag = q
-		case "/gene":
-			g.Gene = q
-		case "/old_locus_tag":
-			g.OldLocusTag = q
-		case "/note":
-			g.Note = q
-		case "/codon_start":
-			v, err := strconv.Atoi(q)
-			if err != nil {
-				println("failed to convert to int at line: ", line)
-			}
-			g.CodonStart = v
-		case "/transl_table":
-			v, err := strconv.Atoi(q)
-			if err != nil {
-				println("failed to convert to int at line: ", line)
-			}
-			g.TranslateTable = v
-		case "/pseudo":
-			g.Pseudo = true
-		case "/inference":
-			g.Inference = q
-		case "/product":
-			g.Product = q
-		case "/protein_id":
-			g.ProteinID = q
-		case "/translation":
-			g.Translation = q
-		case "/EC_number":
-			if g.EcNumber == nil {
-				g.EcNumber = []string{}
-			}
-			g.EcNumber = append(g.EcNumber, q)
-		case "/db_xref":
-			g.DbXref = q
-		default:
-			println("bypass line: ", line, p, q)
-		}
+		g.SetAttribute(line)
 	}
 	return g
 }
 
-func extracAnnotation(arr []string) map[string]string {
+func (g *Gene) SetAttribute(line string) {
+	vs := strings.Split(line, "=")
+	var p, q string
+	p = vs[0]
+	if len(vs) > 1 {
+		q = strings.Trim(vs[1], "\"")
+	}
+
+	switch p {
+	case "/locus_tag":
+		g.LocusTag = q
+	case "/gene":
+		g.Gene = q
+	case "/old_locus_tag":
+		g.OldLocusTag = q
+	case "/note":
+		g.Note = q
+	case "/codon_start":
+		v, err := strconv.Atoi(q)
+		if err != nil {
+			println("failed to convert to int at line: ", line)
+		}
+		g.CodonStart = v
+	case "/transl_table":
+		v, err := strconv.Atoi(q)
+		if err != nil {
+			println("failed to convert to int at line: ", line)
+		}
+		g.TranslateTable = v
+	case "/pseudo":
+		g.Pseudo = true
+	case "/inference":
+		g.Inference = q
+	case "/product":
+		g.Product = q
+	case "/protein_id":
+		g.ProteinID = q
+	case "/translation":
+		g.Translation = q
+	case "/EC_number":
+		if g.EcNumber == nil {
+			g.EcNumber = []string{}
+		}
+		g.EcNumber = append(g.EcNumber, q)
+	case "/db_xref":
+		g.DbXref = q
+	case "/gene_synonym":
+		g.GeneSynonym = q
+	case "/anticodon":
+		g.AntiCodon = q
+	case "/ribosomal_slippage":
+		g.RibosomalSlippage = true
+	case "/function":
+		g.Function = q
+	case "/ncRNA_class":
+		g.NcRNAClass = q
+	case "/transl_except":
+		g.TranslateExcept = q
+	default:
+		println("bypass line: ", line, p, q)
+	}
+}
+
+func extractAnnotation(arr []string) map[string]string {
 	res := make(map[string]string)
 	tmp := [2]string{"", ""}
 	for _, line := range arr {

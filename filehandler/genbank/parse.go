@@ -35,10 +35,13 @@ func (gbr *GBRecord) Parse(fp string) error {
 	curB := &holder {
 		data: make([]string, 0, 1024),
 	}
+	lineCounter := 0
+
 	for scanner.Scan() {
+		lineCounter++
 		line := scanner.Bytes()
 		if len(line) < 12 {
-			println("illegal line: ", string(line))
+			println("#", lineCounter, "; illegal line:  ", string(line))
 			continue
 		}
 		head, body := string(line[:12]), string(line[12:])
@@ -47,7 +50,7 @@ func (gbr *GBRecord) Parse(fp string) error {
 
 		if cur.name != "FEATURES" {
 			if head == "" {
-				cur.data = append(cur.data, body)
+				cur.data = append(cur.data, string(line))
 				continue
 			}
 			if head[0] == ' ' {
@@ -64,14 +67,16 @@ func (gbr *GBRecord) Parse(fp string) error {
 			case "ACCESSION":
 				gbr.Accession = make([]string, 0)
 				for i := 0; i < len(cur.data); i++ {
-					acs := strings.Split(cur.data[i], " ")
+					acs := strings.Split(strings.Trim(cur.data[i], " "), " ")
 					gbr.Accession = append(gbr.Accession, acs...)
 				}
 			case "VERSION":
 				gbr.Version = strings.Join(cur.data, " ")
 			case "DBLINK":
-				gbr.Dblink = make([]string, 0, len(cur.data))
-				copy(gbr.Dblink, cur.data)
+				gbr.DbLink = make([]string, len(cur.data))
+				for i := 0; i < len(cur.data); i++ {
+					gbr.DbLink[i] = strings.Trim(cur.data[i], " ")
+				}
 			case "KEYWORDS":
 				gbr.Keywords = strings.Join(cur.data, " ")
 			case "SOURCE":
@@ -85,12 +90,12 @@ func (gbr *GBRecord) Parse(fp string) error {
 			case "COMMENT":
 				p, q, n := 0, 0, len(cur.data)
 				for i := 0; i < n; i++ {
-					if cur.data[i] == "##Genome-Annotation-Data-START##" {
+					cur.data[i] = strings.Trim(cur.data[i], " ")
+					if strings.Contains(cur.data[i], "##Genome-Annotation-Data-START##") {
 						p = i
 					}
-					if cur.data[i] == "##Genome-Annotation-Data-END##" {
+					if strings.Contains(cur.data[i], "##Genome-Annotation-Data-END##") {
 						q = i
-						break
 					}
 				}
 
@@ -104,7 +109,7 @@ func (gbr *GBRecord) Parse(fp string) error {
 					if q + 1 < n {
 						gbr.Comment += strings.Join(cur.data[q+1:], " ")
 					}
-					gbr.Annotation = extracAnnotation(cur.data[p+1:q])
+					gbr.Annotation = extractAnnotation(cur.data[p+1:q])
 				}
 
 			case "CONTIG":
@@ -113,8 +118,8 @@ func (gbr *GBRecord) Parse(fp string) error {
 				println("uncaught: ", head, body)
 			}
 	
-			println("debugging.... |", head)
-			cur.name = head
+			//println("debugging.... |", head)
+			cur.name = strings.TrimLeft(head, " ")
 			cur.data = cur.data[:1]
 			cur.data[0] = body
 
@@ -127,11 +132,16 @@ func (gbr *GBRecord) Parse(fp string) error {
 		body = strings.TrimRight(body, " ")
 
 		if head == "" {
-			curB.data = append(curB.data, body)
+			curB.data = append(curB.data, string(line))
 			continue;
 		}
 		
 		if head[0] != ' ' {
+			// FEATURES ended, switch to cut at 12
+			head, body := string(line[:12]), string(line[12:])
+			head = strings.TrimRight(head, " ")
+			body = strings.TrimRight(body, " ")
+
 			cur.name = head
 			cur.data = cur.data[:1]
 			cur.data[0] = body
@@ -142,7 +152,7 @@ func (gbr *GBRecord) Parse(fp string) error {
 		switch curB.name {
 		case "":
 			gbr.Features = Features{
-				Genes: make([]Gene, 1024 * 8),
+				Genes: make([]*Gene, 0, 1024 * 16),
 			}
 		case "source":
 			gbr.Features.Description = newFeatureDescription(curB.data)
@@ -150,27 +160,24 @@ func (gbr *GBRecord) Parse(fp string) error {
 			gbr.Features.Genes = append(gbr.Features.Genes, newGene(curB))
 		}
 
-		curB.name = head
+		curB.name = strings.TrimLeft(head, " ")
 		curB.data = curB.data[:1]
 		curB.data[0] = body
 	}
 
 	if curB.name != "" {
-		println(curB.name, "|...")
 		switch curB.name {
 		case "source":
 			gbr.Features.Description = newFeatureDescription(curB.data)
 		default:
-			println("debuging.....\n", curB.name)
 			gbr.Features.Genes = append(gbr.Features.Genes, newGene(curB))
 		}
 	}
 
 	if cur.name != "" {
-		println(cur.name, "|...")
 		switch cur.name {
 		case "CONTIG":
-			// do nothing since it has been handle before
+			gbr.Contig = strings.Join(cur.data, " ")
 		default:
 			println("bypass lines: ", strings.Join(cur.data, " "))
 		}
