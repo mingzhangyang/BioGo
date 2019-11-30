@@ -1,11 +1,11 @@
 package genbank
 
 import (
-	"os"
 	"bufio"
-	"strings"
-	"path/filepath"
 	"errors"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
 type holder struct {
@@ -19,7 +19,7 @@ func (gbr *GBRecord) Parse(fp string) error {
 	if ext != ".gb" {
 		return errors.New("genbank file is supposed to contain name extension .gb")
 	}
-	
+
 	f, err := os.Open(fp)
 	if err != nil {
 		return err
@@ -32,7 +32,7 @@ func (gbr *GBRecord) Parse(fp string) error {
 	cur := &holder{
 		data: make([]string, 0, 1024),
 	}
-	curB := &holder {
+	curB := &holder{
 		data: make([]string, 0, 1024),
 	}
 	lineCounter := 0
@@ -53,6 +53,8 @@ func (gbr *GBRecord) Parse(fp string) error {
 				cur.data = append(cur.data, string(line))
 				continue
 			}
+			// it is possible to have sub-header, e.g REFERENCE part, we need to add the full line to cur.data
+			// to keep the sub-headers for furture processing
 			if head[0] == ' ' {
 				cur.data = append(cur.data, string(line))
 				continue
@@ -86,7 +88,7 @@ func (gbr *GBRecord) Parse(fp string) error {
 					gbr.Reference = make([]Reference, 0, 2)
 				}
 				gbr.Reference = append(gbr.Reference, newReference(cur.data))
-			
+
 			case "COMMENT":
 				p, q, n := 0, 0, len(cur.data)
 				for i := 0; i < n; i++ {
@@ -106,10 +108,10 @@ func (gbr *GBRecord) Parse(fp string) error {
 
 				if p != 0 {
 					gbr.Comment = strings.Join(cur.data[:p], " ")
-					if q + 1 < n {
+					if q+1 < n {
 						gbr.Comment += strings.Join(cur.data[q+1:], " ")
 					}
-					gbr.Annotation = extractAnnotation(cur.data[p+1:q])
+					gbr.Annotation = extractAnnotation(cur.data[p+1 : q])
 				}
 
 			case "CONTIG":
@@ -117,7 +119,7 @@ func (gbr *GBRecord) Parse(fp string) error {
 			default:
 				println("uncaught: ", head, body)
 			}
-	
+
 			//println("debugging.... |", head)
 			cur.name = strings.TrimLeft(head, " ")
 			cur.data = cur.data[:1]
@@ -125,19 +127,20 @@ func (gbr *GBRecord) Parse(fp string) error {
 
 			continue
 		}
-		
-		
+
 		head, body = string(line[:21]), string(line[21:])
 		head = strings.TrimRight(head, " ")
 		body = strings.TrimRight(body, " ")
 
+		// content line, no sub-header, so it is safe to add only body to curB.data
 		if head == "" {
-			curB.data = append(curB.data, string(line))
-			continue;
+			curB.data = append(curB.data, body)
+			continue
 		}
-		
+
+		// FEATURES ended
 		if head[0] != ' ' {
-			// FEATURES ended, switch to cut at 12
+			// switch to cut at 12
 			head, body := string(line[:12]), string(line[12:])
 			head = strings.TrimRight(head, " ")
 			body = strings.TrimRight(body, " ")
@@ -149,10 +152,11 @@ func (gbr *GBRecord) Parse(fp string) error {
 			continue
 		}
 
+		// process the current block before we move to the next sub-header
 		switch curB.name {
 		case "":
 			gbr.Features = Features{
-				Genes: make([]*Gene, 0, 1024 * 16),
+				Genes: make([]*Gene, 0, 1024*16),
 			}
 		case "source":
 			gbr.Features.Description = newFeatureDescription(curB.data)
@@ -160,6 +164,7 @@ func (gbr *GBRecord) Parse(fp string) error {
 			gbr.Features.Genes = append(gbr.Features.Genes, newGene(curB))
 		}
 
+		// update sub-header
 		curB.name = strings.TrimLeft(head, " ")
 		curB.data = curB.data[:1]
 		curB.data[0] = body
@@ -181,6 +186,10 @@ func (gbr *GBRecord) Parse(fp string) error {
 		default:
 			println("bypass lines: ", strings.Join(cur.data, " "))
 		}
+	}
+
+	if err = scanner.Err(); err != nil {
+		return err
 	}
 
 	return nil
