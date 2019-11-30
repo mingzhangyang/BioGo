@@ -194,3 +194,21 @@ func (gbr *GBRecord) Parse(fp string) error {
 
 	return nil
 }
+
+func extractAnnotation(arr []string) map[string]string {
+	res := make(map[string]string)
+	tmp := [2]string{"", ""}
+	for _, line := range arr {
+		vs := strings.Split(line, "::")
+		if len(vs) == 2 {
+			if tmp[0] != "" {
+				res[tmp[0]] = tmp[1]
+			}
+			tmp[0], tmp[1] = strings.Trim(vs[0], " "), strings.Trim(vs[1], " ")
+			continue
+		}
+		tmp[1] += strings.Trim(line, " ")
+	}
+	res[tmp[0]] = tmp[1]
+	return res
+}
