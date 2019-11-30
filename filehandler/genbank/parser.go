@@ -54,6 +54,7 @@ func (gbr *GBRecord) Parse(fp string) error {
 				continue
 			}
 			// it is possible to have sub-header, e.g REFERENCE part, we need to add the full line to cur.data
+			// to keep the sub-headers for furture processing
 			if head[0] == ' ' {
 				cur.data = append(cur.data, string(line))
 				continue
@@ -134,13 +135,13 @@ func (gbr *GBRecord) Parse(fp string) error {
 
 		// content line, no sub-header, so it is safe to add only body to curB.data
 		if head == "" {
-			// curB.data = append(curB.data, string(line))
 			curB.data = append(curB.data, body)
 			continue;
 		}
 		
+		// FEATURES ended
 		if head[0] != ' ' {
-			// FEATURES ended, switch to cut at 12
+			// switch to cut at 12
 			head, body := string(line[:12]), string(line[12:])
 			head = strings.TrimRight(head, " ")
 			body = strings.TrimRight(body, " ")
@@ -152,6 +153,7 @@ func (gbr *GBRecord) Parse(fp string) error {
 			continue
 		}
 
+		// process the current block before we move to the next sub-header
 		switch curB.name {
 		case "":
 			gbr.Features = Features{
@@ -163,6 +165,7 @@ func (gbr *GBRecord) Parse(fp string) error {
 			gbr.Features.Genes = append(gbr.Features.Genes, newGene(curB))
 		}
 
+		// update sub-header
 		curB.name = strings.TrimLeft(head, " ")
 		curB.data = curB.data[:1]
 		curB.data[0] = body
@@ -184,6 +187,10 @@ func (gbr *GBRecord) Parse(fp string) error {
 		default:
 			println("bypass lines: ", strings.Join(cur.data, " "))
 		}
+	}
+
+	if err = scanner.Err(); err != nil {
+		return err
 	}
 
 	return nil
