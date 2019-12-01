@@ -1,7 +1,7 @@
 package main
 
 import (
-	gb "github.com/mingzhangyang/biogo/filehandler/genbank"
+	gb "github.com/mingzhangyang/bio-go/filehandler/genbank"
 	"fmt"
 	"log"
 	"os"
