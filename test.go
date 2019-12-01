@@ -2,7 +2,7 @@ package main
 
 import (
 	// "log"
-	"BioGo/filehandler"
+	"./filehandler"
 	"os"
 	"fmt"
 	// "./machinary"

@@ -7,7 +7,7 @@ import (
 	"log"
 	"bufio"
 
-	"BioGo/util"
+	"./util"
 )
 
 // Fastq type is a handler to deal with fastq files

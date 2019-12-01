@@ -4,7 +4,7 @@ import (
 	"errors"
 	"regexp"
 
-	"BioGo/sequence"
+	"github.com/mingzhangyang/biogo/sequence"
 )
 
 // ReSite type
