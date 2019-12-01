@@ -1,5 +1,5 @@
-# BioGo
-Golang package for Biology
+# bio-go
+Golang module for Biology
 
 - sequence
   - DNA
