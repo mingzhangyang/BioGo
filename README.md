@@ -9,6 +9,7 @@ Golang module for Biology
   - fastq
   - bam
   - vcf
+  - genbank
 - tools
   - search
 - knowledge
